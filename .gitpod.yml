@@ -19,5 +19,4 @@ tasks:
 
   - init: |
       npm install -g @aws-amplify/cli
-      npm install
-    command: amplify pull
+    command: amplify version
