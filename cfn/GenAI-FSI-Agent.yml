@@ -98,6 +98,14 @@ Parameters:
     Description: Source repository for AWS Amplify frontend. 
     Type: String
     Default: your-forked-repo-url
+  HWInfHost:
+    Description: Hostname for Highwind Inference API.
+    Type: String
+    Default: your-highwind-hostname
+  HWInferenceURL:
+    Description: Inference URL for Highwind Inference API.
+    Type: String
+    Default: your-highwind-inference-url
 
 Resources:
   UserPendingAccountsTable:
@@ -243,6 +251,8 @@ Resources:
           CONVERSATION_TABLE: !Ref ConversationTable
           # KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
           S3_ARTIFACT_BUCKET_NAME: !Ref S3ArtifactBucket
+          HW_INFHOST: !Ref HWInfHost
+          HW_INFERENCE_URL: !Ref HWInferenceURL
 
   LexLambdaPermissions:
     Type: AWS::Lambda::Permission

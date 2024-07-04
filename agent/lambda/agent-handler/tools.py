@@ -4,7 +4,18 @@ import boto3
 from langchain.agents.tools import Tool
 from urllib.parse import urlparse
 
-bedrock = boto3.client('bedrock-runtime', region_name=os.environ['AWS_REGION'])
+bedrock = boto3.client('bedrock-runtime', region_name="eu-west-3")
+# bedrock = boto3.client('bedrock-runtime', region_name=os.environ['AWS_REGION'])
+HW_INFHOST=os.getenv("HW_INFHOST")
+HW_INFERENCE_URL=os.getenv("HW_INFERENCE_URL")
+RETRIEVE_K_DOCS = 2
+INFERENCE_REQUEST_KWARGS = {
+    "headers": {
+        "Content-Type": "application/json",
+        "Infhost": HW_INFHOST
+    },
+    "timeout": 30,
+}
 
 class Tools:
 
@@ -18,46 +29,97 @@ class Tools:
             )
         ]
 
-    def parse_kendra_response(self, kendra_response):
+    def get_inference_payload(self, query: str, k: int) -> dict:
+        """Construct inference payload dict that will be sent with POST request."""
+        payload = {
+            "inputs": [
+                {
+                    "name": "input-0",
+                    "shape": [1],
+                    "datatype": "BYTES",
+                    "parameters": None,
+                    "data": [
+                        {
+                            "query": query,
+                            "k": k
+                        }
+                    ]
+                }
+            ]
+        }
+        return payload
+        
+    def get_context_from_vectorstore(self, query: str):
         """
-        Extracts the source URI from document attributes in Kendra response.
+        Send an inference request to the model and get
+        the context from knowledge base.
         """
-        modified_response = kendra_response.copy()
+        try:
+            payload = self.get_inference_payload(
+                query=query,
+                k=RETRIEVE_K_DOCS
+            )
+            response = requests.post(
+                HW_INFERENCE_URL, data=json.dumps(payload), **INFERENCE_REQUEST_KWARGS
+            )
+    
+            if response.status_code == 200:
+                docs = response.json()["outputs"][0]["data"]
+                context = "\n\n".join(doc["page_content"] for doc in docs)
+            else:
+                context = ""
+                print(
+                    f"Request error. Code: {response.status_code}, Message: {response.text}"
+                )
+    
+        except Exception as ex:
+            context = ""
+            print(f"Inference Error: {ex}")
+    
+        return context
 
-        result_items = modified_response.get('ResultItems', [])
+    # def parse_kendra_response(self, kendra_response):
+    #     """
+    #     Extracts the source URI from document attributes in Kendra response.
+    #     """
+    #     modified_response = kendra_response.copy()
 
-        for item in result_items:
-            source_uri = None
-            if item.get('DocumentAttributes'):
-                for attribute in item['DocumentAttributes']:
-                    if attribute.get('Key') == '_source_uri':
-                        source_uri = attribute.get('Value', {}).get('StringValue', '')
+    #     result_items = modified_response.get('ResultItems', [])
 
-            if source_uri:
-                print(f"Amazon Kendra Source URI: {source_uri}")
-                item['_source_uri'] = source_uri
+    #     for item in result_items:
+    #         source_uri = None
+    #         if item.get('DocumentAttributes'):
+    #             for attribute in item['DocumentAttributes']:
+    #                 if attribute.get('Key') == '_source_uri':
+    #                     source_uri = attribute.get('Value', {}).get('StringValue', '')
 
-        return modified_response
+    #         if source_uri:
+    #             print(f"Amazon Kendra Source URI: {source_uri}")
+    #             item['_source_uri'] = source_uri
+
+    #     return modified_response
 
     def kendra_search(self, question):
         """
         Performs a Kendra search using the Query API.
         """
-        kendra = boto3.client('kendra')
+        # kendra = boto3.client('kendra')
 
-        kendra_response = kendra.query(
-            IndexId=os.getenv('KENDRA_INDEX_ID'),
-            QueryText=question,
-            PageNumber=1,
-            PageSize=5  # Limit to 5 results
-        )
+        # kendra_response = kendra.query(
+        #     IndexId=os.getenv('KENDRA_INDEX_ID'),
+        #     QueryText=question,
+        #     PageNumber=1,
+        #     PageSize=5  # Limit to 5 results
+        # )
 
-        parsed_results = self.parse_kendra_response(kendra_response)
+        # parsed_results = self.parse_kendra_response(kendra_response)
 
-        print(f"Amazon Kendra Query Item: {parsed_results}")
+        context = self.get_context_from_vectorstore(question)
+
+        print(f"HW Chroma Query Item: {context}")
 
         # passing in the original question, and various Kendra responses as context into the LLM
-        return self.invokeLLM(question, parsed_results)
+        return self.invokeLLM(question, context)
 
     def invokeLLM(self, question, context):
         """

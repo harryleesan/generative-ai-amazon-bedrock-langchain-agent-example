@@ -20,7 +20,7 @@ user_accounts_table_name = os.environ['USER_EXISTING_ACCOUNTS_TABLE']
 s3_artifact_bucket = os.environ['S3_ARTIFACT_BUCKET_NAME']
 
 # Instantiate boto3 clients and resources
-boto3_session = boto3.Session(region_name=os.environ['AWS_REGION'])
+boto3_session = boto3.Session(region_name="eu-central-1")
 dynamodb = boto3.resource('dynamodb',region_name=os.environ['AWS_REGION'])
 s3_client = boto3.client('s3',region_name=os.environ['AWS_REGION'],config=boto3.session.Config(signature_version='s3v4',))
 s3_object = boto3.resource('s3')
@@ -698,7 +698,7 @@ def invoke_agent(prompt, session_id):
     Invokes Amazon Bedrock-powered LangChain agent with 'prompt' input.
     """
     chat = Chat({'Human': prompt}, session_id)
-    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2:1", region_name=os.environ['AWS_REGION']) # anthropic.claude-instant-v1 / anthropic.claude-3-sonnet-20240229-v1:0
+    llm = Bedrock(client=bedrock_client, model_id="anthropic.claude-v2:1", region_name="eu-central-1") # anthropic.claude-instant-v1 / anthropic.claude-3-sonnet-20240229-v1:0
     llm.model_kwargs = {'max_tokens_to_sample': 350}
     lex_agent = FSIAgent(llm, chat.memory)
     
