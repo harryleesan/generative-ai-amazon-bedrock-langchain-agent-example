@@ -241,7 +241,7 @@ Resources:
           USER_EXISTING_ACCOUNTS_TABLE: !Ref UserExistingAccountsTable
           CONVERSATION_INDEX_TABLE: !Ref ConversationIndexTable
           CONVERSATION_TABLE: !Ref ConversationTable
-          KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
+          # KENDRA_INDEX_ID: !GetAtt KendraIndex.Id
           S3_ARTIFACT_BUCKET_NAME: !Ref S3ArtifactBucket
 
   LexLambdaPermissions:
@@ -331,115 +331,115 @@ Resources:
       AppId: !GetAtt AmplifyApp.AppId
       BranchName: main
 
-  KendraLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub ${AWS::StackName}-KendraLogGroup
-      RetentionInDays: 7
+  # KendraLogGroup:
+  #   Type: AWS::Logs::LogGroup
+  #   Properties:
+  #     LogGroupName: !Sub ${AWS::StackName}-KendraLogGroup
+  #     RetentionInDays: 7
 
-  KendraLogStream:
-    Type: AWS::Logs::LogStream
-    Properties:
-      LogGroupName: !Ref KendraLogGroup
-      LogStreamName: !Sub ${AWS::StackName}-KendraLogStream
-    DependsOn: KendraLogGroup
+  # KendraLogStream:
+  #   Type: AWS::Logs::LogStream
+  #   Properties:
+  #     LogGroupName: !Ref KendraLogGroup
+  #     LogStreamName: !Sub ${AWS::StackName}-KendraLogStream
+  #   DependsOn: KendraLogGroup
 
-  KendraIndexRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-KendraIndexRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - kendra.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: !Sub ${AWS::StackName}-KendraIndexPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action: cloudwatch:PutMetricData
-            Resource: '*'
-          - Effect: Allow
-            Action: logs:DescribeLogGroups
-            Resource: '*'
-          - Effect: Allow
-            Action:
-            - 'logs:CreateLogGroup'
-            - 'logs:DescribeLogStreams'
-            - 'logs:CreateLogStream'
-            - 'logs:PutLogEvents'
-            Resource: '*'
+  # KendraIndexRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: !Sub ${AWS::StackName}-KendraIndexRole
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - kendra.amazonaws.com
+  #         Action:
+  #         - sts:AssumeRole
+  #     Policies:
+  #     - PolicyName: !Sub ${AWS::StackName}-KendraIndexPolicy
+  #       PolicyDocument:
+  #         Version: '2012-10-17'
+  #         Statement:
+  #         - Effect: Allow
+  #           Action: cloudwatch:PutMetricData
+  #           Resource: '*'
+  #         - Effect: Allow
+  #           Action: logs:DescribeLogGroups
+  #           Resource: '*'
+  #         - Effect: Allow
+  #           Action:
+  #           - 'logs:CreateLogGroup'
+  #           - 'logs:DescribeLogStreams'
+  #           - 'logs:CreateLogStream'
+  #           - 'logs:PutLogEvents'
+  #           Resource: '*'
 
-  KendraIndex:
-    Type: AWS::Kendra::Index
-    Properties:
-      Edition: DEVELOPER_EDITION
-      Name: !Sub ${AWS::StackName}-KendraIndex
-      RoleArn: !GetAtt KendraIndexRole.Arn
+  # KendraIndex:
+  #   Type: AWS::Kendra::Index
+  #   Properties:
+  #     Edition: DEVELOPER_EDITION
+  #     Name: !Sub ${AWS::StackName}-KendraIndex
+  #     RoleArn: !GetAtt KendraIndexRole.Arn
 
-  KendraDataSourceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub ${AWS::StackName}-KendraDataSourceRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service:
-            - kendra.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: !Sub ${AWS::StackName}-KendraDataSourcePolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - 's3:GetObject'
-            - 's3:GetBucketLocation'
-            - 's3:ListBucket'
-            - 's3:GetBucketAcl'
-            - 's3:GetObjectAcl'
-            Resource:
-            - !Sub arn:aws:s3:::${S3ArtifactBucket}
-            - !Sub arn:aws:s3:::${S3ArtifactBucket}/*
-          - Effect: Allow
-            Action:
-            - 'kendra:PutPrincipalMapping'
-            - 'kendra:DeletePrincipalMapping'
-            - 'kendra:ListGroupsOlderThanOrderingId'
-            - 'kendra:DescribePrincipalMapping'
-            - 'kendra:BatchPutDocument'
-            - 'kendra:BatchDeleteDocument'
-            Resource: '*'
+  # KendraDataSourceRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: !Sub ${AWS::StackName}-KendraDataSourceRole
+  #     AssumeRolePolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #       - Effect: Allow
+  #         Principal:
+  #           Service:
+  #           - kendra.amazonaws.com
+  #         Action:
+  #         - sts:AssumeRole
+  #     Policies:
+  #     - PolicyName: !Sub ${AWS::StackName}-KendraDataSourcePolicy
+  #       PolicyDocument:
+  #         Version: '2012-10-17'
+  #         Statement:
+  #         - Effect: Allow
+  #           Action:
+  #           - 's3:GetObject'
+  #           - 's3:GetBucketLocation'
+  #           - 's3:ListBucket'
+  #           - 's3:GetBucketAcl'
+  #           - 's3:GetObjectAcl'
+  #           Resource:
+  #           - !Sub arn:aws:s3:::${S3ArtifactBucket}
+  #           - !Sub arn:aws:s3:::${S3ArtifactBucket}/*
+  #         - Effect: Allow
+  #           Action:
+  #           - 'kendra:PutPrincipalMapping'
+  #           - 'kendra:DeletePrincipalMapping'
+  #           - 'kendra:ListGroupsOlderThanOrderingId'
+  #           - 'kendra:DescribePrincipalMapping'
+  #           - 'kendra:BatchPutDocument'
+  #           - 'kendra:BatchDeleteDocument'
+  #           Resource: '*'
 
-  KendraWebCrawler:
-    DependsOn: KendraIndex
-    Type: AWS::Kendra::DataSource
-    Properties:
-      Name: !Sub ${AWS::StackName}-WebCrawler
-      Type: WEBCRAWLER
-      IndexId: !GetAtt KendraIndex.Id
-      RoleArn: !GetAtt KendraDataSourceRole.Arn
-      DataSourceConfiguration:
-        WebCrawlerConfiguration: 
-            CrawlDepth: 3
-            MaxContentSizePerPageInMegaBytes: 50
-            MaxLinksPerPage: 20
-            MaxUrlsPerMinuteCrawlRate: 100
-            Urls: 
-              SeedUrlConfiguration:
-                SeedUrls: 
-                  - !Ref KendraWebCrawlerUrl
-                WebCrawlerMode: SUBDOMAINS
+  # KendraWebCrawler:
+  #   DependsOn: KendraIndex
+  #   Type: AWS::Kendra::DataSource
+  #   Properties:
+  #     Name: !Sub ${AWS::StackName}-WebCrawler
+  #     Type: WEBCRAWLER
+  #     IndexId: !GetAtt KendraIndex.Id
+  #     RoleArn: !GetAtt KendraDataSourceRole.Arn
+  #     DataSourceConfiguration:
+  #       WebCrawlerConfiguration: 
+  #           CrawlDepth: 3
+  #           MaxContentSizePerPageInMegaBytes: 50
+  #           MaxLinksPerPage: 20
+  #           MaxUrlsPerMinuteCrawlRate: 100
+  #           Urls: 
+  #             SeedUrlConfiguration:
+  #               SeedUrls: 
+  #                 - !Ref KendraWebCrawlerUrl
+  #               WebCrawlerMode: SUBDOMAINS
 
   LexBotRole:
     Type: AWS::IAM::Role
@@ -487,12 +487,12 @@ Outputs:
     Value: !GetAtt AmplifyApp.AppId
   AmplifyBranch:
     Value: !GetAtt AmplifyBranch.BranchName
-  KendraIndexID:
-    Value: !GetAtt KendraIndex.Id
-  KendraWebCrawlerDataSourceID:
-    Value: !GetAtt KendraWebCrawler.Id
-  KendraDataSourceRoleARN:
-    Value: !GetAtt KendraDataSourceRole.Arn
+  # KendraIndexID:
+  #   Value: !GetAtt KendraIndex.Id
+  # KendraWebCrawlerDataSourceID:
+  #   Value: !GetAtt KendraWebCrawler.Id
+  # KendraDataSourceRoleARN:
+  #   Value: !GetAtt KendraDataSourceRole.Arn
   LambdaARN:
     Value: !GetAtt AgentHandlerFunction.Arn
   LexBotID:
