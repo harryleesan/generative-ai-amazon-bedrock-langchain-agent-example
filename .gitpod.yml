@@ -3,7 +3,6 @@ tasks:
     command: |
       sudo apt-get update
       sudo apt-get install -y uuid-runtime
-
   - name: Install latest AWS CLI & Set the aws profiles
     command: |
       cd /tmp
